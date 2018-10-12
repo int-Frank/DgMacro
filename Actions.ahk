@@ -8,7 +8,9 @@ Class Action
   
   Delay()
   {
-    return -20
+    ;It seems we need a short delay after sending an input, otherwise we see some strange behaviour.
+    ;20ms seems to be enough
+    return 20
   }
 }
 
@@ -46,6 +48,6 @@ Class Action_Delay extends Action
   
   Delay()
   {
-    return -this.duration
+    return this.duration
   }
 }

@@ -85,7 +85,7 @@ Class Macro_KeySpam_AlwaysOn extends Macro_KeySpam
   __DoNextAction()
   {
     ind := this.m_currentAction + 1
-    delay := this.m_actionList[ind].Delay()
+    delay := -this.m_actionList[ind].Delay()
     this.m_actionList[ind].DoAction()
     this.m_currentAction := Mod((this.m_currentAction + 1), this.m_actionList.MaxIndex())
     
@@ -128,7 +128,7 @@ Class Macro_KeySpam_Hold extends Macro_KeySpam
   __DoNextAction()
   {
     ind := this.m_currentAction + 1
-    delay := this.m_actionList[ind].Delay()
+    delay := -this.m_actionList[ind].Delay()
     this.m_actionList[ind].DoAction()
     this.m_currentAction := Mod((this.m_currentAction + 1), this.m_actionList.MaxIndex())
     
@@ -214,7 +214,7 @@ Class Macro_KeySpam_Toggle extends Macro_KeySpam
   __DoNextAction()
   {
     ind := this.m_currentAction + 1
-    delay := this.m_actionList[ind].Delay()
+    delay := -this.m_actionList[ind].Delay()
     this.m_actionList[ind].DoAction()
     this.m_currentAction := Mod((this.m_currentAction + 1), this.m_actionList.MaxIndex())
     
@@ -301,7 +301,7 @@ Class Macro_KeySpam_Repeat extends Macro_KeySpam
   __DoNextAction()
   {
     ind := this.m_currentAction + 1
-    delay := this.m_actionList[ind].Delay()
+    delay := -this.m_actionList[ind].Delay()
     this.m_actionList[ind].DoAction()
     
     this.m_currentAction += 1
