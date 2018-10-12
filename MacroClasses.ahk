@@ -230,7 +230,7 @@ Class Macro_KeySpam_Toggle extends Macro_KeySpam
   SetBaseState(a_isOn)
   {
     this.m_isOn := a_isOn
-    this.m_isOnBase := a_isOnBase
+    this.m_isOnBase := a_isOn
   }
   
   Reset()

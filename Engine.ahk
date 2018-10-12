@@ -83,6 +83,8 @@ InitAndRun(a_scriptData)
   {
     g_stateData.currentBuild :=  g_stateData.buildList[1]
   }
+  
+  g_stateData.currentState := New StateOff
 }
 
 BuildActionList(a_data)
@@ -223,7 +225,7 @@ Class StatePause extends BaseState
 ;--------------------------------------------------------------------------------
 Class StateData
 {
-  currentState := New StateOff
+  currentState := ""
   currentBuild := ""
   buildList := []
   isScriptOn := False  
@@ -240,7 +242,6 @@ Class Build
   {
     this.m_pauseKeys := a_buildData.pauseKeys
     this.m_numlockKeys := a_buildData.numlockKeys
-    this.__BindPauseKeys()
     tag := New Tags
     for ind, ele in a_buildData.macros
     {
@@ -291,8 +292,6 @@ Class Build
     this.__BindPauseKeys()
     this.__TurnNumlockKeysOn()
     this.__StartMacros()
-    
-    ;SetTimer, RequestUnpause, Delete
   }
   
   Stop()
