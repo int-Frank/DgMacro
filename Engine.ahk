@@ -329,14 +329,7 @@ Class Build
   
   Unpause(a_key)
   {
-    ;Try to fire the unpause key in case it's used by any other macro 
-    for ind, ele in this.m_macros
-    {
-      if (ele.IsActivationKey(a_key))
-      {
-        ele.ForceStart()
-      }
-    }
+    ;Something useful might go in here
   }
   
   ;----- private -----------------------------------------------------
