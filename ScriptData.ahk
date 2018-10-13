@@ -1,4 +1,4 @@
-Class PauseData
+﻿Class PauseData
 {
   pauseOn := ""
   pauseOff := ""

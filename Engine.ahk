@@ -1,4 +1,4 @@
-
+﻿
 #Include ScriptData.ahk
 #Include Actions.ahk
 #Include MacroClasses.ahk
@@ -11,21 +11,22 @@ g_stateData := ""
 ;--------------------------------------------------------------------------------
 ; CALLBACKS
 ;--------------------------------------------------------------------------------
-RequestPause(a_key)
+DoPause(a_obj)
 {
-  RequestStateChange("pauseOn", a_key)
+  a_obj.PauseOn()
+  RequestStateChange("pauseOn")
 }
 
-RequestUnpause()
+DoUnpause(a_obj)
 {
+  a_obj.PauseOff()
   RequestStateChange("pauseOff")
 }
 
-CancelPause(a_key)
+DoUnpauseFromTimer(a_obj)
 {
-  RequestStateChange("pauseOff", a_key)
-  global g_stateData
-  g_stateData.currentBuild.Unpause(a_key)
+  a_obj.PauseOffFromTimer()
+  RequestStateChange("pauseOff")
 }
 
 RequestStateChange(a_state, a_data := 0)
@@ -82,6 +83,7 @@ InitAndRun(a_scriptData)
   if (g_stateData.buildList.MaxIndex() > 0)
   {
     g_stateData.currentBuild :=  g_stateData.buildList[1]
+    g_stateData.currentBuild.Bind()
   }
   
   g_stateData.currentState := New StateOff
@@ -164,7 +166,9 @@ Class StateOff extends BaseState
   SwitchBuild(a_ind)
   {
     global g_stateData
+    g_stateData.currentBuild.Unbind()
     g_stateData.currentBuild := g_stateData.buildList[a_ind]
+    g_stateData.currentBuild.Bind()
   }
 }
   
@@ -197,7 +201,7 @@ Class StatePause extends BaseState
   __New(a_data)
   {
     global g_stateData
-    g_stateData.currentBuild.Pause(a_data)
+    g_stateData.currentBuild.Pause()
   }
 	
   __Delete()
@@ -223,6 +227,124 @@ Class StatePause extends BaseState
 ;--------------------------------------------------------------------------------
 ; OTHER CLASSES
 ;--------------------------------------------------------------------------------
+
+Class PauseObject
+{
+  m_pauseObjCollection := ""
+  m_fPauseOn := ""
+  m_fPauseOff := ""
+  m_fOffFromTimer := ""
+  m_pauseOnKey := ""
+  m_pauseOffKey := ""
+  m_duration := 1
+  m_timerOn := False
+  
+  __New(a_on, a_off, a_duration, ByRef a_collection)
+  {
+    first := SubStr(a_on, 1, 1)
+    if (first != "~")
+    {
+      a_on := "~" . a_on
+    }
+    
+    first := SubStr(a_off, 1, 1)
+    if (first != "~")
+    {
+      a_off := "~" . a_off
+    }
+    
+    if (a_duration < 0)
+    {
+      this.m_duration := a_duration
+    }
+    
+    this.m_pauseOnKey := a_on
+    this.m_pauseOffKey := a_off
+    this.m_fPauseOn := Func("DoPause").Bind(this)
+    this.m_fPauseOff := Func("DoUnpause").Bind(this)
+    this.m_fOffFromTimer := Func("DoUnpauseFromTimer").Bind(this)
+
+    this.m_pauseObjCollection := a_collection
+  }
+  
+  Bind()
+  {
+    onKey := this.m_pauseOnKey
+    offKey := this.m_pauseOffKey
+    fOn := this.m_fPauseOn
+    fOff := this.m_fPauseOff
+    Hotkey, %offKey%, %fOff%
+    Hotkey, %onKey%, %fOn%
+    HotKey, %offKey%, Off
+    Hotkey, %onKey%, On
+  }
+  
+  UnBind()
+  {
+    this.PauseOff()
+    
+    onKey := this.m_pauseOnKey
+    offKey := this.m_pauseOffKey
+    HotKey, %offKey%, Off
+    Hotkey, %onKey%, Off
+  }
+  
+  PauseOn()
+  {
+    for ind, ele in this.m_pauseObjCollection
+    {
+      ele.PauseOff()
+    }
+    
+    onKey := this.m_pauseOnKey
+    offKey := this.m_pauseOffKey
+    fOff := this.m_fPauseOff
+    HotKey, %onKey%, Off
+    HotKey, %offKey%, %fOff%
+    Hotkey, %offKey%, On
+    
+    if (this.m_duration < 0)
+    {
+      this.m_timerOn := True
+      dur := this.m_duration
+      fOffFromTimer := this.m_fOffFromTimer
+      SetTimer, %fOffFromTimer%, %dur%
+    }
+  }
+  
+  PauseOffFromTimer()
+  {
+    this.m_timerOn := False
+      
+    onKey := this.m_pauseOnKey
+    offKey := this.m_pauseOffKey
+    fOn := this.m_fPauseOn
+    
+    HotKey, %offKey%, Off
+    Hotkey, %onKey%, %fOn%
+    Hotkey, %onKey%, On
+  }
+  
+  PauseOff()
+  {
+    onKey := this.m_pauseOnKey
+    offKey := this.m_pauseOffKey
+    fOn := this.m_fPauseOn
+    fOff := this.m_fPauseOff
+    
+    if (this.m_timerOn)
+    {
+      fOffFromTimer := this.m_fOffFromTimer
+      SetTimer, %fOffFromTimer%, Delete
+      this.m_timerOn := False
+    }
+    
+    HotKey, %offKey%, Off
+    Hotkey, %onKey%, %fOn%
+    Hotkey, %onKey%, On
+  }
+}
+
 Class StateData
 {
   currentState := ""
@@ -233,14 +355,20 @@ Class StateData
 
 Class Build
 {
-  m_currentUnpauseFuncts := []
-  m_pauseKeys := []
+  m_pauseObjects := []
   m_numlockKeys := []
   m_macros := []
   
   __New(a_buildData)
   {
-    this.m_pauseKeys := a_buildData.pauseKeys
+    for ind, ele in a_buildData.pauseKeys
+    {
+      this.m_pauseObjects.Push(New PauseObject(ele.pauseOn
+                                             , ele.pauseOff
+                                             , ele.duration
+                                             , this.m_pauseObjects))
+    }
+  
     this.m_numlockKeys := a_buildData.numlockKeys
     tag := New Tags
     for ind, ele in a_buildData.macros
@@ -287,52 +415,57 @@ Class Build
     }
   }
   
-  Start()
+  Bind()
   {
     this.__BindPauseKeys()
+  }
+  
+  Unbind()
+  {
+    this.__UnbindPauseKeys()
+  }
+  
+  Start()
+  {
     this.__TurnNumlockKeysOn()
     this.__StartMacros()
   }
   
   Stop()
   {
-    this.__UnbindPauseKeys()
     this.__TurnNumlockKeysOff()
     this.__StopMacros()
     this.__ResetMacros()
   }
   
-  Pause(a_key)
+  Pause()
   {
-    this.__UnbindPauseKeys()
     this.__StopMacros()
     this.__TurnNumlockKeysOff()
-    
-    for ind, ele in this.m_pauseKeys
-    {
-      if (ele.pauseOn == a_key)
-      {
-        funct := Func("CancelPause").Bind(ele.pauseOff)
-        pseOff := "~" . ele.pauseOff
-        Hotkey, %pseOff%, %funct%
-        Hotkey, %pseOff%, On
-        
-        if (ele.duration < 0)
-        {
-          funct := Func("RequestUnpause")
-          SetTimer, %funct%, % ele.duration
-        }
-        break
-      }
-    }
   }
   
-  Unpause(a_key)
+  Unpause()
   {
     ;Something useful might go in here
   }
   
   ;----- private -----------------------------------------------------
+  
+  __BindPauseKeys()
+  {
+    for ind, ele in this.m_pauseObjects
+    {
+      ele.Bind()
+    }
+  }
+  
+  __UnbindPauseKeys()
+  {
+    for ind, ele in this.m_pauseObjects
+    {
+      ele.Unbind()
+    }
+  }
   
   __StartMacros()
   {
@@ -374,32 +507,6 @@ Class Build
     for ind, ele in this.m_numlockKeys
     {
       SendInput {%ele% up}
-    }
-  }
-  
-  __BindPauseKeys()
-  {
-    for ind, ele in this.m_pauseKeys
-    {
-      pseOn := "~" . ele.pauseOn
-      pseOff := "~" . ele.pauseOff
-      functOn := Func("RequestPause").Bind(ele.pauseOn)
-      functOff := Func("RequestUnpause")
-      Hotkey, %pseOff%, %functOff%
-      Hotkey, %pseOff%, Off
-      Hotkey, %pseOn%, %functOn%
-      Hotkey, %pseOn%, On
-    }
-  }
-  
-  __UnbindPauseKeys()
-  {
-    for ind, ele in this.m_pauseKeys
-    {
-      pseOn := "~" . ele.pauseOn
-      pseOff := "~" . ele.pauseOff
-      Hotkey, %pseOn%, Off
-      Hotkey, %pseOff%, Off
     }
   }
 }
