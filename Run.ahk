@@ -1,4 +1,5 @@
-﻿
+﻿#SingleInstance Force
+
 #Include ScriptBuilder.ahk
 #Include Engine.ahk
 
