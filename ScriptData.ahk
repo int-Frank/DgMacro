@@ -1,8 +1,39 @@
-﻿Class PauseData
+﻿
+#Include Logger.ahk
+
+Class DataObject
+{
+  BuildFromFile(ByRef a_file)
+  {
+  
+  }
+  
+  BuildFromString(a_string)
+  {
+  
+  }
+  
+  WriteToFile(ByRef a_out)
+  {
+    
+  }
+}
+
+Class PauseData extends DataObject
 {
   pauseOn := ""
   pauseOff := ""
   duration := 1
+  
+  BuildFromString(a_string)
+  {
+  
+  }
+  
+  WriteToFile(ByRef a_out)
+  {
+    
+  }
 }
 
 Class ActionData

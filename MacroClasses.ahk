@@ -115,6 +115,7 @@ Class Macro_KeySpam_Hold extends Macro_KeySpam
   m_fDoWork := ""
   m_functOn := ""
   m_functOff := ""
+  m_isActive := False
   
   m_activationKey := ""
   
@@ -127,6 +128,11 @@ Class Macro_KeySpam_Hold extends Macro_KeySpam
   
   __DoNextAction()
   {
+    if (!this.m_isActive)
+    {
+      Return 
+    }
+    
     ind := this.m_currentAction + 1
     delay := -this.m_actionList[ind].Delay()
     this.m_actionList[ind].DoAction()
@@ -151,6 +157,7 @@ Class Macro_KeySpam_Hold extends Macro_KeySpam
   
   SetState(a_isOn)
   {
+    this.m_isActive := a_isOn
     if (a_isOn)
     {
       if (this.m_actionList.MaxIndex() > 0)
@@ -162,14 +169,13 @@ Class Macro_KeySpam_Hold extends Macro_KeySpam
     }
     else
     {
-      funct := this.m_fDoWork
-      SetTimer, %funct%, Delete
       this.m_currentAction := 0
     }
   }
   
   Start()
   {
+    this.m_isActive := True
     functOn := this.m_functOn
     functOff := this.m_functOff
     key := this.m_activationKey
@@ -185,8 +191,7 @@ Class Macro_KeySpam_Hold extends Macro_KeySpam
     HotKey, %key%, Off
     HotKey, %key% up, Off
     
-    funct := this.m_fDoWork
-    SetTimer, %funct%, Delete
+    this.m_isActive := False
     this.m_currentAction := 0
   }
   
@@ -202,6 +207,7 @@ Class Macro_KeySpam_Toggle extends Macro_KeySpam
   m_fDoWork := ""
   m_funct := ""
   m_isOn := False
+  m_isActive := False
   m_isOnBase := False
   m_activationKey := ""
   
@@ -213,13 +219,16 @@ Class Macro_KeySpam_Toggle extends Macro_KeySpam
   
   __DoNextAction()
   {
-    ind := this.m_currentAction + 1
-    delay := -this.m_actionList[ind].Delay()
-    this.m_actionList[ind].DoAction()
-    this.m_currentAction := Mod((this.m_currentAction + 1), this.m_actionList.MaxIndex())
+    if (this.m_isOn && this.m_isActive)
+    {
+      ind := this.m_currentAction + 1
+      delay := -this.m_actionList[ind].Delay()
+      this.m_actionList[ind].DoAction()
+      this.m_currentAction := Mod((this.m_currentAction + 1), this.m_actionList.MaxIndex())
     
-    funct := this.m_fDoWork
-    SetTimer, %funct%, %delay%
+      funct := this.m_fDoWork
+      SetTimer, %funct%, %delay%
+    }
   }
   
   SetActivationKey(a_key)
@@ -252,8 +261,6 @@ Class Macro_KeySpam_Toggle extends Macro_KeySpam
     }
     else
     {
-      funct := this.m_fDoWork
-      SetTimer, %funct%, Delete
       this.m_currentAction := 0
     }
   }
@@ -265,6 +272,7 @@ Class Macro_KeySpam_Toggle extends Macro_KeySpam
     HotKey, %key%, %funct%
     HotKey, %key%, On
     
+    this.m_isActive := True
     if (this.m_isOn)
     {
       if (this.m_actionList.MaxIndex() > 0)
@@ -279,8 +287,7 @@ Class Macro_KeySpam_Toggle extends Macro_KeySpam
     key := this.m_activationKey
     HotKey, %key%, Off
     
-    funct := this.m_fDoWork
-    SetTimer, %funct%, Delete
+    this.m_isActive := False
     this.m_currentAction := 0
   }
 }
@@ -292,6 +299,7 @@ Class Macro_KeySpam_Repeat extends Macro_KeySpam
   m_activationKey := ""
   m_maxCount := 0
   m_currentCount := 0
+  m_isActive := False
   
   __New()
   {
@@ -300,6 +308,11 @@ Class Macro_KeySpam_Repeat extends Macro_KeySpam
   
   __DoNextAction()
   {
+    if (!this.m_isActive)
+    {
+      Return 
+    }
+    
     ind := this.m_currentAction + 1
     delay := -this.m_actionList[ind].Delay()
     this.m_actionList[ind].DoAction()
@@ -335,6 +348,7 @@ Class Macro_KeySpam_Repeat extends Macro_KeySpam
   
   Start()
   {
+    this.m_isActive := True
     funct := this.m_fDoWork
     key := this.m_activationKey
     HotKey, %key%, %funct%
@@ -346,10 +360,7 @@ Class Macro_KeySpam_Repeat extends Macro_KeySpam
     key := this.m_activationKey
     HotKey, %key%, Off
     
-    funct := this.m_fDoWork
-    SetTimer, %funct%, Delete
-    this.m_currentAction := 0
-    
+    this.m_isActive := False
     this.m_currentAction := 0
     this.m_currentCount := 0
   }

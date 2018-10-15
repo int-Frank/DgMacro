@@ -83,7 +83,6 @@ InitAndRun(a_scriptData)
   if (g_stateData.buildList.MaxIndex() > 0)
   {
     g_stateData.currentBuild :=  g_stateData.buildList[1]
-    g_stateData.currentBuild.Bind()
   }
   
   g_stateData.currentState := New StateOff
@@ -166,9 +165,7 @@ Class StateOff extends BaseState
   SwitchBuild(a_ind)
   {
     global g_stateData
-    g_stateData.currentBuild.Unbind()
     g_stateData.currentBuild := g_stateData.buildList[a_ind]
-    g_stateData.currentBuild.Bind()
   }
 }
   
@@ -230,7 +227,7 @@ Class StatePause extends BaseState
 
 Class PauseObject
 {
-  m_pauseObjCollection := ""
+  m_pauseObjCollection := []
   m_fPauseOn := ""
   m_fPauseOff := ""
   m_fOffFromTimer := ""
@@ -415,18 +412,9 @@ Class Build
     }
   }
   
-  Bind()
-  {
-    this.__BindPauseKeys()
-  }
-  
-  Unbind()
-  {
-    this.__UnbindPauseKeys()
-  }
-  
   Start()
   {
+    this.__BindPauseKeys()
     this.__TurnNumlockKeysOn()
     this.__StartMacros()
   }
@@ -436,6 +424,7 @@ Class Build
     this.__TurnNumlockKeysOff()
     this.__StopMacros()
     this.__ResetMacros()
+    this.__UnbindPauseKeys()
   }
   
   Pause()
