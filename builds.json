@@ -1,5 +1,5 @@
 ﻿{
-  "application":"brb - Notepad",
+  "application":"Diablo III",
   "activate":"!e",
   "deactivate":"!e",
   "builds":[
@@ -26,7 +26,7 @@
       "action_list":[
       {
         "type":"key",
-        "key":"o",
+        "key":"RButton",
       },
       {
         "type":"delay",
@@ -54,7 +54,7 @@
       "action_list":[
       {
         "type":"key",
-        "key":"p",
+        "key":"RButton",
       },
       {
         "type":"delay",
