@@ -1,7 +1,8 @@
 ﻿
-#Include ScriptData.ahk
 #Include Actions.ahk
 #Include MacroClasses.ahk
+
+;TODO delays and timers build from file come in +ve
 
 ;--------------------------------------------------------------------------------
 ; GLOBALS
@@ -35,17 +36,37 @@ RequestStateChange(a_state, a_data := 0)
   g_stateData.currentState := g_stateData.currentState.NewState(a_state, a_data)
 }
 
-ToggleScript()
+SetScriptToggleHotKeys(a_isOn)
 {
   global g_stateData
-  if (g_stateData.isScriptOn)
-  {
-    RequestStateChange("StateOff", 0)
-  }
-  else
-  {
-    RequestStateChange("StateOn", 0)
-  }
+  onKey := g_stateData.onKey
+  offKey := g_stateData.offKey
+  
+  HotKey, %onKey%, 
+}
+
+DeactivateScript()
+{
+  global g_stateData
+  activateKey := g_stateData.activateKey
+  deactivateKey := g_stateData.deactivateKey
+  
+  HotKey, %deactivateKey%, Off
+  HotKey, %activateKey%, ActivateScript
+  HotKey, %activateKey%, On
+  RequestStateChange("StateOff", 0)
+}
+
+ActivateScript()
+{
+  global g_stateData
+  activateKey := g_stateData.activateKey
+  deactivateKey := g_stateData.deactivateKey
+  
+  HotKey, %activateKey%, Off
+  HotKey, %deactivateKey%, DeactivateScript
+  HotKey, %deactivateKey%, On
+  RequestStateChange("StateOn", 0)
 }
 
 ChangeBuild(a_val)
@@ -68,15 +89,20 @@ InitAndRun(a_scriptData)
   Hotkey, IfWinActive, ahk_group Group
 
   ;Script toggle
-  HotKey, % a_scriptData.toggleActive, ToggleScript
+  g_stateData.activateKey := a_scriptData.activate
+  g_stateData.deactivateKey := a_scriptData.deactivate
+  activateKey := g_stateData.activateKey
+  deactivateKey := g_stateData.deactivateKey
+  
+  HotKey, %activateKey%, ActivateScript
   
   ;Switch builds
   for ind, ele in a_scriptData.builds
   {
-    funct := Func("ChangeBuild").Bind(ind)
-    bindKey := ele.bind
-    HotKey, %bindKey%, %funct%
-    
+    data := New SwitchBuildData
+    data.key := ele.bind
+    data.callBack := Func("ChangeBuild").Bind(ind)
+    g_stateData.switchBuildKeys.Push(data)
     g_stateData.buildList.Push(New Build(ele))
   }
   
@@ -85,7 +111,7 @@ InitAndRun(a_scriptData)
     g_stateData.currentBuild :=  g_stateData.buildList[1]
   }
   
-  g_stateData.currentState := New StateOff
+  g_stateData.currentState := New StateOff(0)
 }
 
 BuildActionList(a_data)
@@ -93,19 +119,19 @@ BuildActionList(a_data)
   result := []
   for ind, ele in a_data
   {
-    if (ele.actionType == "key")
+    if (ele.type == "key")
     {
       act := New Action_KeyPress()
       act.key := ele.key
       result.Push(act)
     }
-    else if (ele.actionType == "delay")
+    else if (ele.type == "delay")
     {
       act := New Action_Delay()
       act.duration := ele.delay
       result.Push(act)
     }
-    else if (ele.actionType == "click")
+    else if (ele.type == "click")
     {
       act := New Action_MouseClick()
       act.x := ele.x
@@ -124,7 +150,7 @@ Class BaseState
 {
   __New(a_data)
   {
-  
+    
   }
 
   __Delete()
@@ -136,11 +162,6 @@ Class BaseState
   {
 	
   }
-	
-  SwitchBuild(a_ind)
-  {
-  
-  }
 }
   
 Class StateOff extends BaseState
@@ -148,8 +169,26 @@ Class StateOff extends BaseState
   __New(a_data)
   {
     global g_stateData
-    g_stateData.isScriptOn := False
     g_stateData.currentBuild.Stop()
+    
+    global g_stateData
+    for ind, ele in g_stateData.switchBuildKeys
+    {
+      funct := ele.callBack
+      bindKey := ele.key
+      HotKey, %bindKey%, %funct%
+      HotKey, %bindKey%, On
+    }
+  }
+
+  __Delete()
+  {
+    global g_stateData
+    for ind, ele in g_stateData.switchBuildKeys
+    {
+      bindKey := ele.key
+      HotKey, %bindKey%, Off
+    }
   }
 	
   NewState(a_state, a_data)
@@ -174,7 +213,6 @@ Class StateOn extends BaseState
   __New(a_data)
   {
     global g_stateData
-    g_stateData.isScriptOn := True
     g_stateData.currentBuild.Start()
   }
 	
@@ -224,6 +262,22 @@ Class StatePause extends BaseState
 ;--------------------------------------------------------------------------------
 ; OTHER CLASSES
 ;--------------------------------------------------------------------------------
+Class StateData
+{
+  currentState := ""
+  currentBuild := ""
+  buildList := []
+  switchBuildKeys := []
+  
+  activateKey := ""
+  deactivateKey := ""
+}
+
+Class SwitchBuildData
+{
+  key := ""
+  callBack := 0  
+}
 
 Class PauseObject
 {
@@ -250,9 +304,9 @@ Class PauseObject
       a_off := "~" . a_off
     }
     
-    if (a_duration < 0)
+    if (a_duration > 0)
     {
-      this.m_duration := a_duration
+      this.m_duration := -a_duration
     }
     
     this.m_pauseOnKey := a_on
@@ -336,18 +390,11 @@ Class PauseObject
       this.m_timerOn := False
     }
     
+    HotKey, %offKey%, %fOff%
     HotKey, %offKey%, Off
     Hotkey, %onKey%, %fOn%
     Hotkey, %onKey%, On
   }
-}
-
-Class StateData
-{
-  currentState := ""
-  currentBuild := ""
-  buildList := []
-  isScriptOn := False  
 }
 
 Class Build
@@ -358,39 +405,43 @@ Class Build
   
   __New(a_buildData)
   {
-    for ind, ele in a_buildData.pauseKeys
+    for ind, ele in a_buildData.pauses
     {
-      this.m_pauseObjects.Push(New PauseObject(ele.pauseOn
-                                             , ele.pauseOff
-                                             , ele.duration
+      duration := -1
+      if (ele.HasKey("duration"))
+      {
+        duration := ele.duration
+      }
+      this.m_pauseObjects.Push(New PauseObject(ele.on
+                                             , ele.off
+                                             , duration
                                              , this.m_pauseObjects))
     }
   
     this.m_numlockKeys := a_buildData.numlockKeys
-    tag := New Tags
     for ind, ele in a_buildData.macros
     {
-      actionList :=  BuildActionList(ele.actionList)
-      if (ele.activationType == tag.activationTypeAlwaysOn)
+      actionList :=  BuildActionList(ele.action_list)
+      if (ele.activation_type == "always_on")
       {
         macro := New Macro_KeySpam_AlwaysOn
         macro.SetActionList(actionList)
         this.m_macros.Push(macro)
       }
-      else if (ele.activationType == tag.activationTypeHold)
+      else if (ele.activation_type == "hold")
       {
         macro := New Macro_KeySpam_Hold
         macro.SetActionList(actionList)
-        macro.SetActivationKey(ele.activationKey)
+        macro.SetActivationKey(ele.activation_key)
         this.m_macros.Push(macro)
       }
-      else if (ele.activationType == tag.activationTypeToggleOn Or ele.activationType == tag.activationTypeToggleOff)
+      else if (ele.activation_type == "toggle_on" Or ele.activation_type == "toggle_off")
       {
         macro := New Macro_KeySpam_Toggle
         macro.SetActionList(actionList)
-        macro.SetActivationKey(ele.activationKey)
+        macro.SetActivationKey(ele.activation_key)
         
-        if (ele.activationType == tag.activationTypeToggleOn)
+        if (ele.activation_type == "toggle_on")
         {
           macro.SetBaseState(True) 
         }
@@ -405,8 +456,8 @@ Class Build
       {
         macro := New Macro_KeySpam_Repeat
         macro.SetActionList(actionList)
-        macro.SetActivationKey(ele.activationKey)
-        macro.SetCount(ele.activationType)
+        macro.SetActivationKey(ele.activation_key)
+        macro.SetCount(ele.activation_type)
         this.m_macros.Push(macro)
       }
     }

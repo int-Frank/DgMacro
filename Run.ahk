@@ -1,11 +1,19 @@
 ﻿#SingleInstance Force
 
-#Include ScriptBuilder.ahk
 #Include Engine.ahk
+#Include jsonHandler.ahk
 
-scriptData := BuildScript("builds.ini")
-;PrintMacro(scriptData)
-InitAndRun(scriptData)
+try
+{
+  FileRead, jsonStr, builds.json
+}
+catch obj
+{
+  MsgBox Failed to open builds.json
+}
+
+scriptObject := json(jsonStr)
+InitAndRun(scriptObject)
 
 ;Kill Key: alt + x
 !x::ExitApp

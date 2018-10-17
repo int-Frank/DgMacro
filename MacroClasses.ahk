@@ -153,6 +153,14 @@ Class Macro_KeySpam_Hold extends Macro_KeySpam
   SetActivationKey(a_key)
   {
     this.m_activationKey := a_key
+    
+    functOn := this.m_functOn
+    functOff := this.m_functOff
+    key := this.m_activationKey
+    HotKey, %key%, %functOn%
+    HotKey, %key%, Off
+    HotKey, %key% up, %functOff%
+    HotKey, %key% up, Off
   }
   
   SetState(a_isOn)
@@ -187,7 +195,11 @@ Class Macro_KeySpam_Hold extends Macro_KeySpam
   
   Stop()
   {
+    functOn := this.m_functOn
+    functOff := this.m_functOff
     key := this.m_activationKey
+    HotKey, %key%, %functOn%
+    HotKey, %key% up, %functOff%
     HotKey, %key%, Off
     HotKey, %key% up, Off
     
@@ -284,7 +296,9 @@ Class Macro_KeySpam_Toggle extends Macro_KeySpam
   
   Stop()
   {
+    funct := this.m_funct
     key := this.m_activationKey
+    HotKey, %key%, %funct%
     HotKey, %key%, Off
     
     this.m_isActive := False
@@ -357,7 +371,9 @@ Class Macro_KeySpam_Repeat extends Macro_KeySpam
   
   Stop()
   {
+    funct := this.m_fDoWork
     key := this.m_activationKey
+    HotKey, %key%, %funct%
     HotKey, %key%, Off
     
     this.m_isActive := False
