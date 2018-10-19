@@ -41,11 +41,6 @@ Class Action_Delay extends Action
 {
   duration := 600
   
-  DoAction()
-  {
-    
-  }
-  
   Delay()
   {
     return this.duration

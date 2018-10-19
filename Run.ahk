@@ -10,6 +10,7 @@ try
 catch obj
 {
   MsgBox Failed to open builds.json
+  Return
 }
 
 scriptObject := json(jsonStr)

@@ -7,61 +7,61 @@
     "name":"Crusader T13",
     "bind":"!1",
     "pauses":[
-    {
-      "on":"Tab",
-      "off":"Tab"
-    },
-    {
-      "on":"a",
-      "off":"MButton",
-      "duration":3000
-    }
+      {
+        "on":"Tab",
+        "off":"Tab"
+      },
+      {
+        "on":"a",
+        "off":"MButton",
+        "duration":3000
+      }
     ],
     "numlockKeys":["Numpad2","Numpad3","Numpad4"],
     "macros":
     [
-    {
-      "activation_key":"RButton",
-      "activation_type":"toggle_on",
-      "action_list":[
       {
-        "type":"key",
-        "key":"RButton",
-      },
-      {
-        "type":"delay",
-        "delay":580
+        "activation_key":"RButton",
+        "activation_type":"toggle_on",
+        "action_list":[
+          {
+            "type":"key",
+            "key":"RButton",
+          },
+          {
+            "type":"delay",
+            "delay":540
+          }
+        ]
       }
-      ]
-    }
     ],
   },
   {
     "name":"GR",
     "bind":"!2",
     "pauses":[
-    {
-      "on":"Tab",
-      "off":"Tab"
-    }
+      {
+        "on":"Tab",
+        "off":"Tab"
+      }
     ],
     "numlockKeys":["Numpad1","Numpad2","Numpad3","Numpad4"],
     "macros":
     [
-    {
-      "activation_key":"RButton",
-      "activation_type":"toggle_on",
-      "action_list":[
       {
-        "type":"key",
-        "key":"RButton",
-      },
-      {
-        "type":"delay",
-        "delay":580
+        "activation_key":"RButton",
+        "activation_type":"toggle_on",
+        "action_list":[
+          {
+            "type":"key",
+            "key":"RButton",
+          },
+          {
+            "type":"delay",
+            "delay":540
+          }
+        ]
       }
-      ]
-    }
     ]
   }
   ]

@@ -1,3 +1,5 @@
+;retrieved from https://autohotkey.com/board/topic/91700-funktion-json-encode-und-decode/
+
 json(i)
 {
   ;ENCODE

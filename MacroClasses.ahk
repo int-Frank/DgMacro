@@ -22,7 +22,6 @@ MacroToggleState(a_obj)
 ;--------------------------------------------------------------------------------
 ; CLASSES
 ;--------------------------------------------------------------------------------
-
 Class Macro
 {
   __New()
@@ -43,16 +42,6 @@ Class Macro
   Reset()
   {
     
-  }
-  
-  ForceStart()
-  {
-	
-  }
-  
-  IsActivationKey(a_key)
-  {
-    return False
   }
 }
 
@@ -142,14 +131,6 @@ Class Macro_KeySpam_Hold extends Macro_KeySpam
     SetTimer, %funct%, %delay%
   }
   
-  ForceStart()
-  {
-	if (this.m_actionList.MaxIndex() > 0)
-	{
-	  this.__DoNextAction()
-	}
-  }
-  
   SetActivationKey(a_key)
   {
     this.m_activationKey := a_key
@@ -205,11 +186,6 @@ Class Macro_KeySpam_Hold extends Macro_KeySpam
     
     this.m_isActive := False
     this.m_currentAction := 0
-  }
-  
-  IsActivationKey(a_key)
-  {
-    return this.m_activationKey == a_key
   }
 }
 
