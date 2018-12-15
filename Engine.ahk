@@ -2,8 +2,6 @@
 #Include Actions.ahk
 #Include MacroClasses.ahk
 
-;TODO delays and timers build from file come in +ve
-
 ;--------------------------------------------------------------------------------
 ; GLOBALS
 ;--------------------------------------------------------------------------------
